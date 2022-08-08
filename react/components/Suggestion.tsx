@@ -3,11 +3,11 @@ import React, { useContext, useState } from 'react'
 import { Toggle } from 'vtex.styleguide'
 import { AuthContext } from '../context/authContext'
 import { putCombination, deleteCombination } from '../service/api'
-import { AuthType, SuggestionType } from '../typings/types'
+import { AuthType, CombinationType } from '../typings/types'
 
 
 type Props = {
-  suggestion: SuggestionType
+  suggestion: CombinationType
   productId: number
 }
 

@@ -1,53 +1,92 @@
-import React, { Fragment, useContext, useEffect, useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
+import { useLazyQuery } from 'react-apollo'
 import { Spinner, EmptyState } from 'vtex.styleguide'
-import { AuthContext } from '../context/authContext'
-import { getAllSuggestions } from '../service/api'
-import { AuthType, ProductType, SuggestionType } from '../typings/types'
+import useProductCombinations from '../hooks/useProductCombination'
+import { ProductType, CombinationType } from '../typings/types'
 import Suggestion from './Suggestion'
+import productsByIdentifier from "../graphql/productsByIdentifier.graphql";
+
+enum ProductUniqueIdentifierField {
+  id = "id",
+  slug = "slug",
+  ean = "ean",
+  reference = "reference",
+  sku = "sku",
+}
 
 type Props = {
   product: ProductType
 }
 
-
 const ProductData: React.FC<Props> = ({ product }) => {
-  const { token } = useContext(AuthContext) as AuthType
-  const [suggestions, setSuggestions] = useState<SuggestionType[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
 
-  const fetchSuggestions = async () => {
-    if (!token) return
-    const { content } = await getAllSuggestions(token, product.id)
+  const [combinations, setCombinations] = useState<CombinationType[]>([]);
 
-    content.map(
-      async (item: {
-        combinedProductId: number
-        combinedProductName: string
-        combinationActive: boolean
-      }) => {
-        const itemInfo = await fetch(
-          `/api/catalog_system/pub/products/variations/${item.combinedProductId}`
-        )
+  const {
+    productCombinationsPage,
+    loadingCombinations,
+    fetchProductCombinationsByProductId,
+  } = useProductCombinations();
 
-        const json = await itemInfo.json()
+  const [
+    queryProductsById,
+    { data: products, loading: loadingProductsById, called: productsByIdCalled },
+  ] = useLazyQuery(productsByIdentifier, { notifyOnNetworkStatusChange: true });
 
-        const itemData: SuggestionType = {
-          id: json.productId,
-          name: json.name,
-          image: json.skus[0].image,
-          isActive: item.combinationActive,
-        }
+  useEffect(() => {
+    fetchProductCombinationsByProductId(product.id);
+  }, [product]);
 
-        setSuggestions((prevProducts) => [...prevProducts, itemData])
-      }
-    )
-    setLoading(false)
+  useEffect(() => {
+    if (!productCombinationsPage) {
+      return;
+    }
+
+    const productCombinedIds = productCombinationsPage.content.map(
+      (productCombination) => productCombination.combinedProductId
+    );
+
+    if (productCombinedIds.length === 0) {
+      return;
+    }
+
+    const executeQuery = (variables: Record<string, any>) =>
+      queryProductsById({
+        variables,
+      });
+
+    executeQuery({
+      field: ProductUniqueIdentifierField.id,
+      values: productCombinedIds,
+    });
+  }, [productCombinationsPage]);
+
+  function isActive(productId: number): boolean {
+    const result = productCombinationsPage?.content.filter((product) => {
+      return product.combinedProductId == productId;
+    });
+
+    if (result && result.length > 0) {
+      return result[0].combinationActive;
+    }
+
+    return false;
   }
 
   useEffect(() => {
-    fetchSuggestions()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    if (productsByIdCalled) {
+      products.productsByIdentifier.map((item: any) => {
+        const combination: CombinationType = {
+          id: item.productId,
+          name: item.productName,
+          image: item.items[0].images[0].imageUrl,
+          isActive: isActive(item.productId),
+        }
+
+        setCombinations((prevCombinations) => [...prevCombinations, combination])
+      })
+    }
+  }, [products])
 
   return (
     <div className="flex flex-column justify-center">
@@ -67,7 +106,7 @@ const ProductData: React.FC<Props> = ({ product }) => {
         </div>
       </div>
       <div className="flex flex-column items-center">
-        {loading ? (
+        {loadingCombinations || loadingProductsById ? (
           <Spinner />
         ) : (
           <Fragment>
@@ -75,8 +114,8 @@ const ProductData: React.FC<Props> = ({ product }) => {
               <strong>Combinações Disponíveis</strong>
               <strong>Ativar/Desativar</strong>
             </div>
-            {suggestions.length > 0 ? (
-              suggestions.map((suggestion) => (
+            {combinations.length > 0 ? (
+              combinations.map((suggestion) => (
                 <Suggestion
                   key={suggestion.id}
                   suggestion={suggestion}

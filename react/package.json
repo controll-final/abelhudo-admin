@@ -7,6 +7,7 @@
     "@types/react-intl": "^2.3.17",
     "@vtex/tsconfig": "^0.4.4",
     "apollo-client": "^2.4.7",
+    "controll.abelhudo": "https://douglas--controll.myvtex.com/_v/private/typings/linked/v1/controll.abelhudo@0.0.1+build1659935741/public/@types/controll.abelhudo",
     "graphql": "^14.0.2",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
@@ -14,11 +15,11 @@
     "react-intl": "^2.7.2",
     "typescript": "3.9.7",
     "vtex.render-runtime": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.render-runtime@8.132.4/public/@types/vtex.render-runtime",
+    "vtex.search-graphql": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.search-graphql@0.50.0/public/@types/vtex.search-graphql",
     "vtex.styleguide": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.styleguide@9.146.1/public/@types/vtex.styleguide"
   },
   "dependencies": {
-    "@types/faker": "^4.1.5",
     "axios": "^0.27.2",
-    "faker": "^4.1.0"
+    "react-apollo": "^3.1.3"
   }
 }

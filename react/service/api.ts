@@ -21,27 +21,6 @@ export const getToken = async () => {
   return response.data
 }
 
-export const getAllProducts = async (
-  token: string,
-  search?: string,
-  page = 0
-) => {
-  const parameters = search
-    ? `name=%25${search}%25&page=${page}`
-    : `page=${page}`
-
-  const response = await axios.request({
-    url: `${baseUrl}/v1/products?${parameters}&size=5&sort=quantitySold,desc&active=true`,
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  })
-
-  return response.data
-}
-
 export const getAllSuggestions = async (token: string, productId: number) => {
   const response = await axios.request({
     url: `${baseUrl}/v1/products/${productId}/combinations`,

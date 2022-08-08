@@ -28,7 +28,7 @@ export type ProductType = {
   price?: string
 }
 
-export type SuggestionType = {
+export type CombinationType = {
   id: number
   name: string
   image?: string

@@ -8,7 +8,7 @@ const ProductsTable: React.FC = () => {
   const { productsPage, loading, fetchProductsPage } = useProducts();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize] = useState(20);
   const [currentItemFrom, setCurrentItemFrom] = useState(1);
   const [currentItemTo, setCurrentItemTo] = useState(pageSize);
 
@@ -35,11 +35,6 @@ const ProductsTable: React.FC = () => {
     const itemFrom = ((page - 1) * pageSize) + 1;
     const itemTo = ((page - 1) * pageSize) + pageSize;
     goToPage(newPage, itemFrom, itemTo)
-  }
-
-  function handleRowChange(value: number) {
-    goToPage(0, 1, value);
-    setPageSize(value);
   }
 
   function goToPage(newPage: number, itemFrom: number, itemTo: number) {
@@ -140,11 +135,7 @@ const ProductsTable: React.FC = () => {
           onPrevClick: () => handlePreviousClick(),
           currentItemFrom: currentItemFrom,
           currentItemTo: currentItemTo,
-          onRowsChange: (_: any, value: number) => handleRowChange(value),
-          textShowRows: 'Show rows',
-          textOf: 'of',
           totalItems: productsPage?.totalElements,
-          rowsOptions: [5, 10, 15, 25],
         }}
       />
 
