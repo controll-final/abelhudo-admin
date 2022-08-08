@@ -1,10 +1,9 @@
 {
-  "name": "admin-example",
-  "vendor": "vtex",
-  "version": "0.0.12",
-  "title": "Example Admin App",
-  "description": "",
-  "mustUpdateAt": "2022-08-28",
+  "name": "abelhudo",
+  "vendor": "controll",
+  "version": "0.0.1",
+  "title": "Abelhudo",
+  "description": "Gerenciador de Sugestões de venda conjunta",
   "scripts": {
     "postreleasy": "vtex publish"
   },
