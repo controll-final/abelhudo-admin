@@ -2,7 +2,7 @@ import { AxiosResponse } from 'axios'
 import React, { useContext, useState } from 'react'
 import { Toggle } from 'vtex.styleguide'
 import { AuthContext } from '../context/authContext'
-import { putCombination, deleteCombination } from '../services/api'
+import { putCombination, deleteCombination } from '../service/api'
 import { AuthType, SuggestionType } from '../typings/types'
 
 

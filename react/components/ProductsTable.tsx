@@ -1,44 +1,57 @@
-import React, { Fragment, useContext, useEffect, useState } from 'react'
-import { AuthContext } from '../context/authContext';
-import { ProductContext } from '../context/productContext';
-import { getAllProducts, getToken } from '../services/api';
-import { AuthType, ProductContextType, ProductType } from '../typings/types';
-import { Button, Table, Modal, InputSearch, Spinner } from 'vtex.styleguide'
+import React, { Fragment, useEffect, useState } from 'react'
+import { ProductType } from '../typings/types';
+import { Button, Table, Modal, InputSearch } from 'vtex.styleguide'
 import ProductData from './ProductData';
+import useProducts from './../hooks/useProducts';
 
 const ProductsTable: React.FC = () => {
-  const { token, updateToken } = useContext(AuthContext) as AuthType
-  const { products, updateProducts } = useContext(ProductContext) as ProductContextType
+  const { productsPage, loading, fetchProductsPage } = useProducts();
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(5);
+  const [currentItemFrom, setCurrentItemFrom] = useState(1);
+  const [currentItemTo, setCurrentItemTo] = useState(pageSize);
+
+  useEffect(() => {
+    fetchProductsPage({
+      name: search,
+      page,
+      size: pageSize,
+      sort: ["quantitySold", "desc"],
+    });
+    console.log('useEffect');
+  }, [fetchProductsPage, search, page, pageSize]);
+
+
+  function handleNextClick() {
+    const newPage = page + 1;
+    const itemFrom = ((page + 1) * pageSize) + 1;
+    const itemTo = ((page + 1) * pageSize) + pageSize;
+    goToPage(newPage, itemFrom, itemTo)
+  }
+
+  function handlePreviousClick() {
+    const newPage = page - 1;
+    const itemFrom = ((page - 1) * pageSize) + 1;
+    const itemTo = ((page - 1) * pageSize) + pageSize;
+    goToPage(newPage, itemFrom, itemTo)
+  }
+
+  function handleRowChange(value: number) {
+    goToPage(0, 1, value);
+    setPageSize(value);
+  }
+
+  function goToPage(newPage: number, itemFrom: number, itemTo: number) {
+    setPage(newPage);
+    setCurrentItemFrom(itemFrom);
+    setCurrentItemTo(itemTo);
+  }
+
+  //const { token, updateToken } = useContext(AuthContext) as AuthType
+  //onst { products, updateProducts } = useContext(ProductContext) as ProductContextType
   const [mainProduct, setMainProduct] = useState<ProductType>()
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
-  const [search, setSearch] = useState<string>('')
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-
-  const getAuth = async () => {
-    const response = await getToken()
-    console.log("Auth Response: ", response)
-    updateToken(response.access_token)
-  }
-
-  const getProducts = async () => {
-    if (!token) return
-    const { content } = await getAllProducts(token, search)
-    console.log("PRoducts: ", content)
-    updateProducts(content)
-  }
-
-  useEffect(() => {
-    console.log("Buscando autenticação")
-    getAuth()
-  }, [])
-
-  useEffect(() => {
-    getProducts()
-  }, [token])
-
-  useEffect(() => {
-    if (products.length > 0) setIsLoading(false)
-  }, [products])
 
   const toggleModal = async (rowData: ProductType) => {
     const itemInfo = await fetch(
@@ -59,7 +72,7 @@ const ProductsTable: React.FC = () => {
 
   function updateSearch(e: any) {
     setSearch(e.target.value);
-    getProducts();
+    setPage(0);
   }
 
   const defaultSchema = {
@@ -86,7 +99,7 @@ const ProductsTable: React.FC = () => {
       action: {
         title: 'Ações',
         cellRenderer: (rowData: { rowData: ProductType }) => {
-          console.log("RowDAta: ", rowData.rowData)
+          //console.log("RowDAta: ", rowData.rowData)
           return (
             <Button
               onClick={() => {
@@ -115,21 +128,26 @@ const ProductsTable: React.FC = () => {
           updateSearch(e)
         }}
       />
-      {isLoading ?
-        (
-          <div className="flex justify-center pa7">
-            <Spinner />
-          </div>
-        ) :
-        (
-          <Table
-            fixFirstColumn
-            fullWidth
-            schema={defaultSchema}
-            items={products}
-          />
-        )
-      }
+
+      <Table
+        fixFirstColumn
+        fullWidth
+        schema={defaultSchema}
+        items={productsPage?.content}
+        loading={loading}
+        pagination={{
+          onNextClick: () => handleNextClick(),
+          onPrevClick: () => handlePreviousClick(),
+          currentItemFrom: currentItemFrom,
+          currentItemTo: currentItemTo,
+          onRowsChange: (_: any, value: number) => handleRowChange(value),
+          textShowRows: 'Show rows',
+          textOf: 'of',
+          totalItems: productsPage?.totalElements,
+          rowsOptions: [5, 10, 15, 25],
+        }}
+      />
+
 
       {mainProduct && (
         <Modal

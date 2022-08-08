@@ -31,7 +31,7 @@ export const getAllProducts = async (
     : `page=${page}`
 
   const response = await axios.request({
-    url: `${baseUrl}/v1/products?${parameters}&size=40&sort=quantitySold,desc&active=true`,
+    url: `${baseUrl}/v1/products?${parameters}&size=5&sort=quantitySold,desc&active=true`,
     method: 'GET',
     headers: {
       Accept: 'application/json',

@@ -1,7 +1,7 @@
 import React, { Fragment, useContext, useEffect, useState } from 'react'
 import { Spinner, EmptyState } from 'vtex.styleguide'
 import { AuthContext } from '../context/authContext'
-import { getAllSuggestions } from '../services/api'
+import { getAllSuggestions } from '../service/api'
 import { AuthType, ProductType, SuggestionType } from '../typings/types'
 import Suggestion from './Suggestion'
 
