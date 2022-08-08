@@ -3,6 +3,7 @@ import { ProductType } from '../typings/types';
 import { Button, Table, Modal, InputSearch } from 'vtex.styleguide'
 import ProductData from './ProductData';
 import useProducts from './../hooks/useProducts';
+import { Product } from '../service/@types';
 
 const ProductsTable: React.FC = () => {
   const { productsPage, loading, fetchProductsPage } = useProducts();
@@ -12,15 +13,18 @@ const ProductsTable: React.FC = () => {
   const [currentItemFrom, setCurrentItemFrom] = useState(1);
   const [currentItemTo, setCurrentItemTo] = useState(pageSize);
 
+  const [sortedBy, setSortedBy] = useState<keyof Product.Detailed>("quantitySold");
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+
   useEffect(() => {
     fetchProductsPage({
       name: search,
       page,
       size: pageSize,
-      sort: ["quantitySold", "desc"],
+      sort: [sortedBy, sortOrder],
     });
     console.log('useEffect');
-  }, [fetchProductsPage, search, page, pageSize]);
+  }, [fetchProductsPage, search, page, pageSize, sortedBy, sortOrder]);
 
 
   function handleNextClick() {
@@ -43,8 +47,6 @@ const ProductsTable: React.FC = () => {
     setCurrentItemTo(itemTo);
   }
 
-  //const { token, updateToken } = useContext(AuthContext) as AuthType
-  //onst { products, updateProducts } = useContext(ProductContext) as ProductContextType
   const [mainProduct, setMainProduct] = useState<ProductType>()
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
 
@@ -75,6 +77,7 @@ const ProductsTable: React.FC = () => {
       id: {
         title: 'ID',
         width: 50,
+        sortable: true,
       },
       name: {
         title: 'Produto',
@@ -130,6 +133,14 @@ const ProductsTable: React.FC = () => {
         schema={defaultSchema}
         items={productsPage?.content}
         loading={loading}
+        sort={{
+          sortedBy: sortedBy,
+          sortOrder: sortOrder.toUpperCase(),
+        }}
+        onSort={(sort: any) => {
+          setSortedBy(sort.sortedBy);
+          setSortOrder(sort.sortOrder.toLowerCase());
+        }}
         pagination={{
           onNextClick: () => handleNextClick(),
           onPrevClick: () => handlePreviousClick(),
@@ -138,7 +149,6 @@ const ProductsTable: React.FC = () => {
           totalItems: productsPage?.totalElements,
         }}
       />
-
 
       {mainProduct && (
         <Modal
