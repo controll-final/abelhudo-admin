@@ -31,13 +31,18 @@ const Suggestion: React.FC<Props> = ({ suggestion, productId }) => {
 
   return (
     <div className="flex items-center justify-between w-100 bb b--black-05 pb2 mt2">
-      <div className="flex justify-start items-center">
+      <div className="flex justify-between items-center">
         <div className="dtc w2 w3-ns v-mid">
           <img src={suggestion.image} alt={suggestion.name} />
         </div>
-        <div className="dtc v-mid pl3">
-          <strong className="f6 mt0 mb0 black-60">{suggestion.name}</strong>
+        <div className="flex justify-end">
+          <div className="dtc v-mid pl3">
+            <strong className="f6 mt0 mb0 black-60">{suggestion.name}</strong>
+          </div>
         </div>
+      </div>
+      <div className="dtc v-mid pl3 pr3">
+        <strong className="f6 mt0 mb0 black-60">{suggestion.combinationCount}</strong>
       </div>
       <Toggle
         onChange={() => {

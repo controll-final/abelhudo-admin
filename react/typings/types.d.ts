@@ -33,6 +33,5 @@ export type SuggestionType = {
   name: string
   image?: string
   isActive?: boolean
-  category?: string
-  brand?: string
+  combinationCount: number
 }

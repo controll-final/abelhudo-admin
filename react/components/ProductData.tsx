@@ -22,11 +22,13 @@ const ProductData: React.FC<Props> = ({ product }) => {
     }
     const { content } = await getAllSuggestions(token, product.id)
     setSuggestions([])
+    console.log("CONTENT", content)
     content.map(
       async (item: {
         combinedProductId: number
         combinedProductName: string
         combinationActive: boolean
+        combinationCount: number
       }) => {
         const itemInfo = await fetch(
           `/api/catalog_system/pub/products/variations/${item.combinedProductId}`
@@ -38,8 +40,10 @@ const ProductData: React.FC<Props> = ({ product }) => {
           id: json.productId,
           name: json.name,
           image: json.skus[0].image,
+          combinationCount: item.combinationCount,
           isActive: item.combinationActive,
         }
+        console.log("ITEM", itemData)
 
         setSuggestions((prevProducts) => [...prevProducts, itemData])
       }
@@ -86,7 +90,11 @@ const ProductData: React.FC<Props> = ({ product }) => {
           <Fragment>
             <div className="flex items-center justify-between w-100 bb fw3 b--black-05 pb2 mt2">
               <strong>Combinações Disponíveis</strong>
-              <strong>Ativar/Desativar</strong>
+              <div className="flex">
+                <strong className="pr3">Vendas conjuntas</strong>
+                &nbsp;
+                <strong>Ativar/Desativar</strong>
+              </div>
             </div>
             {suggestions.length > 0 ? (
               suggestions.map((suggestion) => (
