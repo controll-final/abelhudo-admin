@@ -3,11 +3,11 @@ import React, { useContext, useState } from 'react'
 import { Toggle } from 'vtex.styleguide'
 import { AuthContext } from '../context/authContext'
 import { putCombination, deleteCombination } from '../service/api'
-import { AuthType, CombinationType } from '../typings/types'
+import { AuthType, SuggestionType } from '../typings/types'
 
 
 type Props = {
-  suggestion: CombinationType
+  suggestion: SuggestionType
   productId: number
 }
 
@@ -19,10 +19,10 @@ const Suggestion: React.FC<Props> = ({ suggestion, productId }) => {
     if (!token) return
     let response: AxiosResponse
     if (isActive) {
-      response = await putCombination(token, productId, item)
+      response = await deleteCombination(token, productId, item)
       setIsActive(false)
     } else {
-      response = await deleteCombination(token, productId, item)
+      response = await putCombination(token, productId, item)
       setIsActive(true)
     }
 

@@ -1,161 +1,66 @@
-import React, { useEffect, useState } from 'react'
-import { useLazyQuery } from 'react-apollo'
-import { Spinner, Table, Toggle } from 'vtex.styleguide'
-import useProductCombinations from '../hooks/useProductCombination'
-import { ProductType, CombinationType } from '../typings/types'
-import productsByIdentifier from "../graphql/productsByIdentifier.graphql";
-
-enum ProductUniqueIdentifierField {
-  id = "id",
-  slug = "slug",
-  ean = "ean",
-  reference = "reference",
-  sku = "sku",
-}
+import React, { Fragment, useContext, useEffect, useState } from 'react'
+import { Spinner, EmptyState } from 'vtex.styleguide'
+import { AuthContext } from '../context/authContext'
+import { getAllSuggestions, getToken } from '../service/api'
+import { AuthType, ProductType, SuggestionType } from '../typings/types'
+import Suggestion from './Suggestion'
 
 type Props = {
   product: ProductType
 }
 
+
 const ProductData: React.FC<Props> = ({ product }) => {
-  const [page, setPage] = useState(0);
-  const [pageSize] = useState(20);
-  const [currentItemFrom, setCurrentItemFrom] = useState(1);
-  const [currentItemTo, setCurrentItemTo] = useState(pageSize);
-  const [combinations, setCombinations] = useState<CombinationType[]>([]);
+  const { token, updateToken } = useContext(AuthContext) as AuthType
+  const [suggestions, setSuggestions] = useState<SuggestionType[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
 
-  const {
-    productCombinationsPage,
-    loadingCombinations,
-    fetchProductCombinationsByProductId,
-  } = useProductCombinations();
-
-  const [
-    queryProductsById,
-    { data: products, loading: loadingProductsById, called: productsByIdCalled },
-  ] = useLazyQuery(productsByIdentifier, { notifyOnNetworkStatusChange: true });
-
-  useEffect(() => {
-    fetchProductCombinationsByProductId(product.id);
-  }, [product]);
-
-  useEffect(() => {
-    if (!productCombinationsPage) {
-      return;
+  const fetchSuggestions = async () => {
+    if (!token) {
+      console.log("SEM TOKEN")
+      return
     }
+    const { content } = await getAllSuggestions(token, product.id)
+    setSuggestions([])
+    content.map(
+      async (item: {
+        combinedProductId: number
+        combinedProductName: string
+        combinationActive: boolean
+      }) => {
+        const itemInfo = await fetch(
+          `/api/catalog_system/pub/products/variations/${item.combinedProductId}`
+        )
 
-    const productCombinedIds = productCombinationsPage.content.map(
-      (productCombination) => productCombination.combinedProductId
-    );
+        const json = await itemInfo.json()
 
-    if (productCombinedIds.length === 0) {
-      return;
-    }
-
-    const executeQuery = (variables: Record<string, any>) =>
-      queryProductsById({
-        variables,
-      });
-
-    executeQuery({
-      field: ProductUniqueIdentifierField.id,
-      values: productCombinedIds,
-    });
-  }, [productCombinationsPage]);
-
-  function isActive(productId: number): boolean {
-    const result = productCombinationsPage?.content.filter((product) => {
-      return product.combinedProductId == productId;
-    });
-
-    if (result && result.length > 0) {
-      return result[0].combinationActive;
-    }
-
-    return false;
-  }
-
-  useEffect(() => {
-    if (productsByIdCalled) {
-      products.productsByIdentifier.map((item: any) => {
-        const combination: CombinationType = {
-          id: item.productId,
-          name: item.productName,
-          image: item.items[0].images[0].imageUrl,
-          isActive: isActive(item.productId),
+        const itemData: SuggestionType = {
+          id: json.productId,
+          name: json.name,
+          image: json.skus[0].image,
+          isActive: item.combinationActive,
         }
 
-        setCombinations((prevCombinations) => [...prevCombinations, combination])
-      })
-    }
-  }, [products])
-
-  const toggleSuggestion = () => {
-
+        setSuggestions((prevProducts) => [...prevProducts, itemData])
+      }
+    )
+    setLoading(false)
   }
 
-  function handleNextClick() {
-    const newPage = page + 1;
-    const itemFrom = ((page + 1) * pageSize) + 1;
-    const itemTo = ((page + 1) * pageSize) + pageSize;
-    goToPage(newPage, itemFrom, itemTo)
+  const getAuth = async () => {
+    const response = await getToken()
+    updateToken(response.access_token)
   }
 
-  function handlePreviousClick() {
-    const newPage = page - 1;
-    const itemFrom = ((page - 1) * pageSize) + 1;
-    const itemTo = ((page - 1) * pageSize) + pageSize;
-    goToPage(newPage, itemFrom, itemTo)
-  }
+  useEffect(() => {
+    getAuth()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  function goToPage(newPage: number, itemFrom: number, itemTo: number) {
-    setPage(newPage);
-    setCurrentItemFrom(itemFrom);
-    setCurrentItemTo(itemTo);
-  }
-
-  const defaultSchema = {
-    properties: {
-      id: {
-        title: 'ID',
-        width: 50,
-      },
-      image: {
-        title: 'Imagem',
-        width: 100,
-        cellRenderer: ({ rowData }: any) => {
-          console.log("rowData: ", rowData)
-          return (
-            <img src={rowData.image} alt={rowData.name} className="db h-100" />
-          )
-        }
-      },
-      name: {
-        title: 'Produto',
-        minWidth: 300,
-        sortable: true,
-      },
-      combinationCount: {
-        title: 'Vendas',
-        width: 90,
-        sortable: true,
-      },
-      action: {
-        title: 'Ações',
-        width: 100,
-        cellRenderer: () => {
-          return (
-            <Toggle
-              onChange={() => {
-                toggleSuggestion()
-              }}
-              checked={isActive}
-            />
-          )
-        },
-      },
-    },
-  }
+  useEffect(() => {
+    if (token && suggestions.length === 0) fetchSuggestions()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
 
   return (
     <div className="flex flex-column justify-center">
@@ -174,25 +79,31 @@ const ProductData: React.FC<Props> = ({ product }) => {
           </div>
         </div>
       </div>
-      <div className="db">
-        {loadingCombinations || loadingProductsById ? (
+      <div className="flex flex-column items-center">
+        {loading ? (
           <Spinner />
         ) : (
-          <Table
-            className="w-100 pa0"
-            fullWidth
-            density="low"
-            dynamicRowHeight
-            schema={defaultSchema}
-            items={combinations}
-            pagination={{
-              onNextClick: () => handleNextClick(),
-              onPrevClick: () => handlePreviousClick(),
-              currentItemFrom: currentItemFrom,
-              currentItemTo: currentItemTo,
-              totalItems: combinations?.length,
-            }}
-          />
+          <Fragment>
+            <div className="flex items-center justify-between w-100 bb fw3 b--black-05 pb2 mt2">
+              <strong>Combinações Disponíveis</strong>
+              <strong>Ativar/Desativar</strong>
+            </div>
+            {suggestions.length > 0 ? (
+              suggestions.map((suggestion) => (
+                <Suggestion
+                  key={suggestion.id}
+                  suggestion={suggestion}
+                  productId={product.id}
+                />
+              ))
+            ) : (
+              <EmptyState title="Nenhuma sugestão disponível">
+                <p>
+                  Não encontramos nenhuma sugestão para o produto selecionado.
+                </p>
+              </EmptyState>
+            )}
+          </Fragment>
         )}
       </div>
     </div>
