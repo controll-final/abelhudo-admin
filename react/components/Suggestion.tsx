@@ -42,7 +42,7 @@ const Suggestion: React.FC<Props> = ({ suggestion, productId }) => {
         </div>
       </div>
       <div className="dtc v-mid pl3 pr3">
-        <strong className="f6 mt0 mb0 black-60">{suggestion.combinationCount}</strong>
+        <strong className="f6 mt0 mb0 black-60 tr">{suggestion.combinationCount}</strong>
       </div>
       <Toggle
         onChange={() => {
