@@ -7,7 +7,7 @@
     "@types/react-intl": "^2.3.17",
     "@vtex/tsconfig": "^0.4.4",
     "apollo-client": "^2.4.7",
-    "controll.abelhudo": "https://douglas--controll.myvtex.com/_v/private/typings/linked/v1/controll.abelhudo@0.0.1+build1659935741/public/@types/controll.abelhudo",
+    "controll.abelhudo": "https://allyssondev--controll.myvtex.com/_v/private/typings/linked/v1/controll.abelhudo@0.0.1+build1659922387/public/@types/controll.abelhudo",
     "graphql": "^14.0.2",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",

@@ -161,9 +161,9 @@ combined-stream@^1.0.8:
   dependencies:
     delayed-stream "~1.0.0"
 
-"controll.abelhudo@https://douglas--controll.myvtex.com/_v/private/typings/linked/v1/controll.abelhudo@0.0.1+build1659935741/public/@types/controll.abelhudo":
+"controll.abelhudo@https://allyssondev--controll.myvtex.com/_v/private/typings/linked/v1/controll.abelhudo@0.0.1+build1659922387/public/@types/controll.abelhudo":
   version "0.0.1"
-  resolved "https://douglas--controll.myvtex.com/_v/private/typings/linked/v1/controll.abelhudo@0.0.1+build1659935741/public/@types/controll.abelhudo#a8eb1e53cb6906b445b8de78f7852e44722dd21a"
+  resolved "https://allyssondev--controll.myvtex.com/_v/private/typings/linked/v1/controll.abelhudo@0.0.1+build1659922387/public/@types/controll.abelhudo#224e5f408d8e6db369b6f137db1013647663a197"
 
 csstype@^2.2.0:
   version "2.6.3"

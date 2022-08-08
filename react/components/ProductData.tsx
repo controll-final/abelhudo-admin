@@ -1,9 +1,8 @@
-import React, { Fragment, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useLazyQuery } from 'react-apollo'
-import { Spinner, EmptyState } from 'vtex.styleguide'
+import { Spinner, Table, Toggle } from 'vtex.styleguide'
 import useProductCombinations from '../hooks/useProductCombination'
 import { ProductType, CombinationType } from '../typings/types'
-import Suggestion from './Suggestion'
 import productsByIdentifier from "../graphql/productsByIdentifier.graphql";
 
 enum ProductUniqueIdentifierField {
@@ -19,7 +18,10 @@ type Props = {
 }
 
 const ProductData: React.FC<Props> = ({ product }) => {
-
+  const [page, setPage] = useState(0);
+  const [pageSize] = useState(20);
+  const [currentItemFrom, setCurrentItemFrom] = useState(1);
+  const [currentItemTo, setCurrentItemTo] = useState(pageSize);
   const [combinations, setCombinations] = useState<CombinationType[]>([]);
 
   const {
@@ -88,6 +90,73 @@ const ProductData: React.FC<Props> = ({ product }) => {
     }
   }, [products])
 
+  const toggleSuggestion = () => {
+
+  }
+
+  function handleNextClick() {
+    const newPage = page + 1;
+    const itemFrom = ((page + 1) * pageSize) + 1;
+    const itemTo = ((page + 1) * pageSize) + pageSize;
+    goToPage(newPage, itemFrom, itemTo)
+  }
+
+  function handlePreviousClick() {
+    const newPage = page - 1;
+    const itemFrom = ((page - 1) * pageSize) + 1;
+    const itemTo = ((page - 1) * pageSize) + pageSize;
+    goToPage(newPage, itemFrom, itemTo)
+  }
+
+  function goToPage(newPage: number, itemFrom: number, itemTo: number) {
+    setPage(newPage);
+    setCurrentItemFrom(itemFrom);
+    setCurrentItemTo(itemTo);
+  }
+
+  const defaultSchema = {
+    properties: {
+      id: {
+        title: 'ID',
+        width: 50,
+      },
+      image: {
+        title: 'Imagem',
+        width: 100,
+        cellRenderer: ({ rowData }: any) => {
+          console.log("rowData: ", rowData)
+          return (
+            <img src={rowData.image} alt={rowData.name} className="db h-100" />
+          )
+        }
+      },
+      name: {
+        title: 'Produto',
+        minWidth: 300,
+        sortable: true,
+      },
+      combinationCount: {
+        title: 'Vendas',
+        width: 90,
+        sortable: true,
+      },
+      action: {
+        title: 'Ações',
+        width: 100,
+        cellRenderer: () => {
+          return (
+            <Toggle
+              onChange={() => {
+                toggleSuggestion()
+              }}
+              checked={isActive}
+            />
+          )
+        },
+      },
+    },
+  }
+
   return (
     <div className="flex flex-column justify-center">
       <div className="flex items-center justify-start">
@@ -105,31 +174,25 @@ const ProductData: React.FC<Props> = ({ product }) => {
           </div>
         </div>
       </div>
-      <div className="flex flex-column items-center">
+      <div className="db">
         {loadingCombinations || loadingProductsById ? (
           <Spinner />
         ) : (
-          <Fragment>
-            <div className="flex items-center justify-between w-100 bb fw3 b--black-05 pb2 mt2">
-              <strong>Combinações Disponíveis</strong>
-              <strong>Ativar/Desativar</strong>
-            </div>
-            {combinations.length > 0 ? (
-              combinations.map((suggestion) => (
-                <Suggestion
-                  key={suggestion.id}
-                  suggestion={suggestion}
-                  productId={product.id}
-                />
-              ))
-            ) : (
-              <EmptyState title="Nenhuma sugestão disponível">
-                <p>
-                  Não encontramos nenhuma sugestão para o produto selecionado.
-                </p>
-              </EmptyState>
-            )}
-          </Fragment>
+          <Table
+            className="w-100 pa0"
+            fullWidth
+            density="low"
+            dynamicRowHeight
+            schema={defaultSchema}
+            items={combinations}
+            pagination={{
+              onNextClick: () => handleNextClick(),
+              onPrevClick: () => handlePreviousClick(),
+              currentItemFrom: currentItemFrom,
+              currentItemTo: currentItemTo,
+              totalItems: combinations?.length,
+            }}
+          />
         )}
       </div>
     </div>
